@@ -1,10 +1,28 @@
+package Main;
 
-//Game.java
+
 import java.io.*;
 
+import Model.BlockingPlayer;
+import Model.Board;
+import Model.Constants;
+import Model.HumanPlayer;
+import Model.Player;
+import Model.RandomPlayer;
+import Model.Referee;
+import Model.SmartPlayer;
+import View.boardView;
+
+/**
+ * This class contains the main method, creates all necessary objects and initiates the game.
+ * @author Kush Bhatt
+ * @version 1.0
+ * @Since 11/5/2019
+ */
 public class Game implements Constants {
 
 	private Board theBoard;
+	private static boardView theBoardView;
 	private Referee theRef;
 	
 	/**
@@ -12,7 +30,7 @@ public class Game implements Constants {
 	 */
     public Game( ) {
         theBoard  = new Board();
-
+        theBoardView = new boardView();
 	}
     
     /**
@@ -22,7 +40,8 @@ public class Game implements Constants {
      */
     public void appointReferee(Referee r) throws IOException {
         theRef = r;
-    	theRef.runTheGame();
+        theBoardView.setInfoAreaText("Referee started the game...");
+    	theRef.runTheGame(theBoardView);
     }
     
 	
@@ -33,25 +52,24 @@ public class Game implements Constants {
 		BufferedReader stdin;
 		Game theGame = new Game();
 		stdin = new BufferedReader(new InputStreamReader(System.in));
-		System.out.print("\nPlease enter the name of the \'X\' player: ");
-		String name= stdin.readLine();
+		String name= theBoardView.playerName(LETTER_X);
 		while (name == null) {
-			System.out.print("Please try again: ");
-			name = stdin.readLine();
+			theBoardView.setInfoAreaText("Please try again");
+			name= theBoardView.playerName(LETTER_X);
 		}
 
 		xPlayer = create_player (name, LETTER_X, theGame.theBoard, stdin);
 		
-		System.out.print("\nPlease enter the name of the \'O\' player: ");
-		name = stdin.readLine();
+		name= theBoardView.playerName(LETTER_O);
+		
 		while (name == null) {
-			System.out.print("Please try again: ");
-			name = stdin.readLine();
+			theBoardView.setInfoAreaText("Please try again");
+			name= theBoardView.playerName(LETTER_O);
 		}
 		
 		oPlayer = create_player (name, LETTER_O, theGame.theBoard, stdin);
 		
-		theRef = new Referee();
+		theRef = new Referee(theBoardView);
 		theRef.setBoard(theGame.theBoard);
 		theRef.setToPlayer(oPlayer);
 		theRef.setxPlayer(xPlayer);
@@ -71,30 +89,18 @@ public class Game implements Constants {
 	 */
 	static public Player  create_player(String name, char mark, Board board,
 			BufferedReader stdin)throws IOException {
-		// Get the player type.
 		final int NUMBER_OF_TYPES = 4;
-		System.out.print ( "\nWhat type of player is " + name + "?\n");
-		System.out.print("  1: Human\n" + "  2: Random Player\n"
-		+ "  3: Blocking Player\n" + "  4: Smart Player\n");
-		System.out.print( "Please enter a number in the range 1-" + NUMBER_OF_TYPES + ": ");
-		int player_type = 0;
-
-		String input;
-		stdin = new BufferedReader(new InputStreamReader(System.in));
-		input= stdin.readLine();
-		player_type = Integer.parseInt(input);
+		int player_type = theBoardView.CreatePlayer(name, NUMBER_OF_TYPES);
 		while (player_type < 1 || player_type > NUMBER_OF_TYPES) {
-			System.out.print( "Please try again.\n");
-			System.out.print ( "Enter a number in the range 1-" +NUMBER_OF_TYPES + ": ");
-			input= stdin.readLine();
-			player_type = Integer.parseInt(input);
+			theBoardView.setInfoAreaText("Please try again");
+			player_type = theBoardView.CreatePlayer(name, NUMBER_OF_TYPES);
 		}
 		
 		// Create a specific type of Player 
 		Player result = null;
 		switch(player_type) {
 			case 1:
-				result = new HumanPlayer(name, mark);
+				result = new HumanPlayer(name, mark, theBoardView);
 				break;
 			case 2:
 				result = new RandomPlayer(name, mark);
